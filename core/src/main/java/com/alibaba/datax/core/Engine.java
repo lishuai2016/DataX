@@ -30,7 +30,7 @@ import java.util.regex.Pattern;
 /**
  * Engine是DataX入口类，该类负责初始化Job或者Task的运行容器，并运行插件的Job或者Task逻辑
  */
-public class Engine {
+public class Engine {//python脚本最后调用这个类
     private static final Logger LOG = LoggerFactory.getLogger(Engine.class);
 
     private static String RUNTIME_MODE;
