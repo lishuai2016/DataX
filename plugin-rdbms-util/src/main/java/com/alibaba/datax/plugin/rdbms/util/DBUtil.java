@@ -426,7 +426,7 @@ public final class DBUtil {
         Statement stmt = conn.createStatement(ResultSet.TYPE_FORWARD_ONLY,
                 ResultSet.CONCUR_READ_ONLY);
         stmt.setFetchSize(fetchSize);
-        stmt.setQueryTimeout(queryTimeout);
+        stmt.setQueryTimeout(queryTimeout);//设置了查询超时
         return query(stmt, sql);
     }
 
@@ -504,7 +504,7 @@ public final class DBUtil {
         Connection conn = getConnection(dataBaseType, jdbcUrl, user, pass);
         return getTableColumnsByConn(dataBaseType, conn, tableName, "jdbcUrl:"+jdbcUrl);
     }
-
+    //获取全部的列字段
     public static List<String> getTableColumnsByConn(DataBaseType dataBaseType, Connection conn, String tableName, String basicMsg) {
         List<String> columns = new ArrayList<String>();
         Statement statement = null;
@@ -512,7 +512,7 @@ public final class DBUtil {
         String queryColumnSql = null;
         try {
             statement = conn.createStatement();
-            queryColumnSql = String.format("select * from %s where 1=2",
+            queryColumnSql = String.format("select * from %s where 1=2",//这里的1=2过滤不出数据，但是可以返回表各个字段
                     tableName);
             rs = statement.executeQuery(queryColumnSql);
             ResultSetMetaData rsMetaData = rs.getMetaData();
@@ -779,7 +779,7 @@ public final class DBUtil {
                     DBUtilErrorCode.RS_ASYNC_ERROR, "异步获取ResultSet失败", e);
         }
     }
-    
+
     public static void loadDriverClass(String pluginType, String pluginName) {
         try {
             String pluginJsonPath = StringUtils.join(

@@ -10,7 +10,10 @@ import java.util.*;
  * 提供通用的根据数字范围、字符串范围等进行切分的通用功能.
  */
 public final class RangeSplitUtil {
-
+    public static void main(String[] args){
+        String[] strings = doAsciiStringSplit("1", "100", 10);
+        System.out.println();
+    }
     public static String[] doAsciiStringSplit(String left, String right, int expectSliceNumber) {
         int radix = 128;
 

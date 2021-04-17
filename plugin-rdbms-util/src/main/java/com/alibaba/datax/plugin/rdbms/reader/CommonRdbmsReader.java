@@ -52,7 +52,7 @@ public class CommonRdbmsReader {
 
         public void init(Configuration originalConfig) {
 
-            OriginalConfPretreatmentUtil.doPretreatment(originalConfig);
+            OriginalConfPretreatmentUtil.doPretreatment(originalConfig);//读插件的预处理
 
             LOG.debug("After job init(), job config now is:[\n{}\n]",
                     originalConfig.toJSON());
@@ -62,11 +62,11 @@ public class CommonRdbmsReader {
             /*检查每个表是否有读权限，以及querySql跟splik Key是否正确*/
             Configuration queryConf = ReaderSplitUtil.doPreCheckSplit(originalConfig);
             String splitPK = queryConf.getString(Key.SPLIT_PK);
-            List<Object> connList = queryConf.getList(Constant.CONN_MARK, Object.class);
+            List<Object> connList = queryConf.getList(Constant.CONN_MARK, Object.class);//jdbc链接URL
             String username = queryConf.getString(Key.USERNAME);
             String password = queryConf.getString(Key.PASSWORD);
             ExecutorService exec;
-            if (connList.size() < 10){
+            if (connList.size() < 10){//按照配置的链接数构建线程池
                 exec = Executors.newFixedThreadPool(connList.size());
             }else{
                 exec = Executors.newFixedThreadPool(10);
@@ -74,12 +74,12 @@ public class CommonRdbmsReader {
             Collection<PreCheckTask> taskList = new ArrayList<PreCheckTask>();
             for (int i = 0, len = connList.size(); i < len; i++){
                 Configuration connConf = Configuration.from(connList.get(i).toString());
-                PreCheckTask t = new PreCheckTask(username,password,connConf,dataBaseType,splitPK);
+                PreCheckTask t = new PreCheckTask(username,password,connConf,dataBaseType,splitPK);//封装任务
                 taskList.add(t);
             }
             List<Future<Boolean>> results = Lists.newArrayList();
             try {
-                results = exec.invokeAll(taskList);
+                results = exec.invokeAll(taskList);//把任务列表批量提交执行
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
             }
@@ -94,10 +94,10 @@ public class CommonRdbmsReader {
                     Thread.currentThread().interrupt();
                 }
             }
-            exec.shutdownNow();
+            exec.shutdownNow();//销毁线程池
         }
 
-
+        //按照主键id的范围和步长，切分为多个查询SQL，比如主键id范围1-100，步长10，会切分为10个查询语句
         public List<Configuration> split(Configuration originalConfig,
                                          int adviceNumber) {
             return ReaderSplitUtil.doSplit(originalConfig, adviceNumber);
@@ -113,7 +113,7 @@ public class CommonRdbmsReader {
 
     }
 
-    public static class Task {
+    public static class Task {//这里应该是一个切分项对应一个task任务
         private static final Logger LOG = LoggerFactory
                 .getLogger(Task.class);
         private static final boolean IS_DEBUG = LOG.isDebugEnabled();
@@ -141,7 +141,7 @@ public class CommonRdbmsReader {
             this.taskId = taskId;
         }
 
-        public void init(Configuration readerSliceConfig) {
+        public void init(Configuration readerSliceConfig) {//初始化数据库连接信息
 
 			/* for database connection */
 
@@ -204,7 +204,7 @@ public class CommonRdbmsReader {
 
                 long rsNextUsedTime = 0;
                 long lastTime = System.nanoTime();
-                while (rs.next()) {
+                while (rs.next()) {//核心，这里把一行记录转化为Record
                     rsNextUsedTime += (System.nanoTime() - lastTime);
                     this.transportOneRecord(recordSender, rs,
                             metaData, columnNumber, mandatoryEncoding, taskPluginCollector);
@@ -230,21 +230,21 @@ public class CommonRdbmsReader {
         public void destroy(Configuration originalConfig) {
             // do nothing
         }
-        
-        protected Record transportOneRecord(RecordSender recordSender, ResultSet rs, 
-                ResultSetMetaData metaData, int columnNumber, String mandatoryEncoding, 
+
+        protected Record transportOneRecord(RecordSender recordSender, ResultSet rs,
+                ResultSetMetaData metaData, int columnNumber, String mandatoryEncoding,
                 TaskPluginCollector taskPluginCollector) {
-            Record record = buildRecord(recordSender,rs,metaData,columnNumber,mandatoryEncoding,taskPluginCollector); 
-            recordSender.sendToWriter(record);
+            Record record = buildRecord(recordSender,rs,metaData,columnNumber,mandatoryEncoding,taskPluginCollector);//构建记录
+            recordSender.sendToWriter(record);//发送记录
             return record;
-        }
+        }// 把ResultSet的一行记录封装成Record对象
         protected Record buildRecord(RecordSender recordSender,ResultSet rs, ResultSetMetaData metaData, int columnNumber, String mandatoryEncoding,
         		TaskPluginCollector taskPluginCollector) {
-        	Record record = recordSender.createRecord();
+        	Record record = recordSender.createRecord();//初始化一个空对象
 
             try {
-                for (int i = 1; i <= columnNumber; i++) {
-                    switch (metaData.getColumnType(i)) {
+                for (int i = 1; i <= columnNumber; i++) {//读取各个列
+                    switch (metaData.getColumnType(i)) {//判断类型创建不同的列对象
 
                     case Types.CHAR:
                     case Types.NCHAR:
@@ -256,7 +256,7 @@ public class CommonRdbmsReader {
                         if(StringUtils.isBlank(mandatoryEncoding)){
                             rawData = rs.getString(i);
                         }else{
-                            rawData = new String((rs.getBytes(i) == null ? EMPTY_CHAR_ARRAY : 
+                            rawData = new String((rs.getBytes(i) == null ? EMPTY_CHAR_ARRAY :
                                 rs.getBytes(i)), mandatoryEncoding);
                         }
                         record.addColumn(new StringColumn(rawData));

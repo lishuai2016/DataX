@@ -30,7 +30,7 @@ public final class ListUtil {
     }
 
     public static void makeSureNoValueDuplicate(List<String> aList,
-                                                boolean caseSensitive) {
+                                                boolean caseSensitive) {//确保没有重复的字段
         if (null == aList || aList.isEmpty()) {
             throw new IllegalArgumentException("您提供的作业配置有误, List不能为空.");
         }
@@ -125,7 +125,7 @@ public final class ListUtil {
         }
     }
 
-    public static List<String> valueToLowerCase(List<String> aList) {
+    public static List<String> valueToLowerCase(List<String> aList) {//全部转化为小写
         if (null == aList || aList.isEmpty()) {
             throw new IllegalArgumentException("您提供的作业配置有误, List不能为空.");
         }

@@ -72,8 +72,8 @@ public class Configuration {
 	 * 从JSON字符串加载Configuration
 	 */
 	public static Configuration from(String json) {
-        json = StrUtil.replaceVariable(json);
-		checkJSON(json);
+        json = StrUtil.replaceVariable(json);//通过正则表达式匹配变量然后进行替换
+		checkJSON(json);//空字符串检测
 
 		try {
 			return new Configuration(json);
@@ -137,7 +137,7 @@ public class Configuration {
 
 		return value;
 	}
-	
+
 	public String getUnnecessaryValue(String key,String defaultValue,ErrorCode errorCode) {
 		String value = this.getString(key, defaultValue);
 		if (StringUtils.isBlank(value)) {
@@ -173,7 +173,7 @@ public class Configuration {
 	 * config.get("a") 返回a下属整个Map <br>
 	 * config.get("a.b.c") 返回c对应的数组List <br>
 	 * config.get("a.b.c[0]") 返回数字0
-	 * 
+	 *
 	 * @return Java表示的JSON对象，如果path不存在或者对象不存在，均返回null。
 	 */
 	public Object get(final String path) {
@@ -202,7 +202,7 @@ public class Configuration {
 
 	/**
 	 * 根据用户提供的json path，寻址String对象
-	 * 
+	 *
 	 * @return String对象，如果path不存在或者String不存在，返回null
 	 */
 	public String getString(final String path) {
@@ -215,7 +215,7 @@ public class Configuration {
 
 	/**
 	 * 根据用户提供的json path，寻址String对象，如果对象不存在，返回默认字符串
-	 * 
+	 *
 	 * @return String对象，如果path不存在或者String不存在，返回默认字符串
 	 */
 	public String getString(final String path, final String defaultValue) {
@@ -230,7 +230,7 @@ public class Configuration {
 
 	/**
 	 * 根据用户提供的json path，寻址Character对象
-	 * 
+	 *
 	 * @return Character对象，如果path不存在或者Character不存在，返回null
 	 */
 	public Character getChar(final String path) {
@@ -251,7 +251,7 @@ public class Configuration {
 
 	/**
 	 * 根据用户提供的json path，寻址Boolean对象，如果对象不存在，返回默认Character对象
-	 * 
+	 *
 	 * @return Character对象，如果path不存在或者Character不存在，返回默认Character对象
 	 */
 	public Character getChar(final String path, char defaultValue) {
@@ -264,7 +264,7 @@ public class Configuration {
 
 	/**
 	 * 根据用户提供的json path，寻址Boolean对象
-	 * 
+	 *
 	 * @return Boolean对象，如果path值非true,false ，将报错.特别注意：当 path 不存在时，会返回：null.
 	 */
 	public Boolean getBool(final String path) {
@@ -286,7 +286,7 @@ public class Configuration {
 
 	/**
 	 * 根据用户提供的json path，寻址Boolean对象，如果对象不存在，返回默认Boolean对象
-	 * 
+	 *
 	 * @return Boolean对象，如果path不存在或者Boolean不存在，返回默认Boolean对象
 	 */
 	public Boolean getBool(final String path, boolean defaultValue) {
@@ -299,7 +299,7 @@ public class Configuration {
 
 	/**
 	 * 根据用户提供的json path，寻址Integer对象
-	 * 
+	 *
 	 * @return Integer对象，如果path不存在或者Integer不存在，返回null
 	 */
 	public Integer getInt(final String path) {
@@ -320,7 +320,7 @@ public class Configuration {
 
 	/**
 	 * 根据用户提供的json path，寻址Integer对象，如果对象不存在，返回默认Integer对象
-	 * 
+	 *
 	 * @return Integer对象，如果path不存在或者Integer不存在，返回默认Integer对象
 	 */
 	public Integer getInt(final String path, int defaultValue) {
@@ -333,7 +333,7 @@ public class Configuration {
 
 	/**
 	 * 根据用户提供的json path，寻址Long对象
-	 * 
+	 *
 	 * @return Long对象，如果path不存在或者Long不存在，返回null
 	 */
 	public Long getLong(final String path) {
@@ -354,7 +354,7 @@ public class Configuration {
 
 	/**
 	 * 根据用户提供的json path，寻址Long对象，如果对象不存在，返回默认Long对象
-	 * 
+	 *
 	 * @return Long对象，如果path不存在或者Integer不存在，返回默认Long对象
 	 */
 	public Long getLong(final String path, long defaultValue) {
@@ -367,7 +367,7 @@ public class Configuration {
 
 	/**
 	 * 根据用户提供的json path，寻址Double对象
-	 * 
+	 *
 	 * @return Double对象，如果path不存在或者Double不存在，返回null
 	 */
 	public Double getDouble(final String path) {
@@ -388,7 +388,7 @@ public class Configuration {
 
 	/**
 	 * 根据用户提供的json path，寻址Double对象，如果对象不存在，返回默认Double对象
-	 * 
+	 *
 	 * @return Double对象，如果path不存在或者Double不存在，返回默认Double对象
 	 */
 	public Double getDouble(final String path, double defaultValue) {
@@ -563,7 +563,7 @@ public class Configuration {
 	 * config.get("a") 返回a下属整个Map <br>
 	 * config.get("a.b.c") 返回c对应的数组List <br>
 	 * config.get("a.b.c[0]") 返回数字0
-	 * 
+	 *
 	 * @return Java表示的JSON对象，如果转型失败，将抛出异常
 	 */
 	@SuppressWarnings("unchecked")
@@ -594,7 +594,7 @@ public class Configuration {
 	 * <br>
 	 * 对于插入对象，Configuration不做任何限制，但是请务必保证该对象是简单对象(包括Map<String,
 	 * Object>、List<Object>)，不要使用自定义对象，否则后续对于JSON序列化等情况会出现未定义行为。
-	 * 
+	 *
 	 * @param path
 	 *            JSON path对象
 	 * @param object
@@ -645,7 +645,7 @@ public class Configuration {
 
 	/**
 	 * 合并其他Configuration，并修改两者冲突的KV配置
-	 * 
+	 *
 	 * @param another
 	 *            合并加入的第三方Configuration
 	 * @param updateWhenConflict
@@ -1059,7 +1059,7 @@ public class Configuration {
 		}
 	}
 
-	private Configuration(final String json) {
+	private Configuration(final String json) {//唯一的构造函数，私有
 		try {
 			this.root = JSON.parse(json);
 		} catch (Exception e) {

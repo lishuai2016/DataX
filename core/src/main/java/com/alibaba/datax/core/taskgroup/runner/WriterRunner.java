@@ -53,7 +53,7 @@ public class WriterRunner extends AbstractRunner implements Runnable {
 
             PerfRecord dataPerfRecord = new PerfRecord(getTaskGroupId(), getTaskId(), PerfRecord.PHASE.WRITE_TASK_DATA);
             dataPerfRecord.start();
-            taskWriter.startWrite(recordReceiver);
+            taskWriter.startWrite(recordReceiver);//核心，从channel中
 
             dataPerfRecord.addCount(CommunicationTool.getTotalReadRecords(super.getRunnerCommunication()));
             dataPerfRecord.addSize(CommunicationTool.getTotalReadBytes(super.getRunnerCommunication()));
@@ -78,7 +78,7 @@ public class WriterRunner extends AbstractRunner implements Runnable {
             channelWaitRead.end(super.getRunnerCommunication().getLongCounter(CommunicationTool.WAIT_READER_TIME));
         }
     }
-    
+
     public boolean supportFailOver(){
     	Writer.Task taskWriter = (Writer.Task) this.getPlugin();
     	return taskWriter.supportFailOver();

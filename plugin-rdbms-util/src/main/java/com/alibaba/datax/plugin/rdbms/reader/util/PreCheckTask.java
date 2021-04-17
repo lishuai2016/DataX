@@ -45,7 +45,7 @@ public class PreCheckTask implements Callable<Boolean>{
         List<Object> splitPkSqls = this.connection.getList(Key.SPLIT_PK_SQL, Object.class);
         List<Object> tables = this.connection.getList(Key.TABLE,Object.class);
         Connection conn = DBUtil.getConnectionWithoutRetry(this.dataBaseType, jdbcUrl,
-                this.userName, password);
+                this.userName, password);//直接创建jdbc链接，不使用连接池，认为没有必要
         int fetchSize = 1;
         if(DataBaseType.MySql.equals(dataBaseType) || DataBaseType.DRDS.equals(dataBaseType)) {
             fetchSize = Integer.MIN_VALUE;
@@ -64,8 +64,8 @@ public class PreCheckTask implements Callable<Boolean>{
             /*verify query*/
                 ResultSet rs = null;
                 try {
-                    DBUtil.sqlValid(querySql,dataBaseType);
-                    if(i == 0) {
+                    DBUtil.sqlValid(querySql,dataBaseType);//借助于druid的SQL解析来校验SQL语法的正确性
+                    if(i == 0) { //使用第一条SQL校验连接的正确性
                         rs = DBUtil.query(conn, querySql, fetchSize);
                     }
                 } catch (ParserException e) {
@@ -78,7 +78,7 @@ public class PreCheckTask implements Callable<Boolean>{
             /*verify splitPK*/
                 try{
                     if (splitPkSqls != null && !splitPkSqls.isEmpty()) {
-                        splitPkSql = splitPkSqls.get(i).toString();
+                        splitPkSql = splitPkSqls.get(i).toString();LOG.info("splitPkSql {}",splitPkSql);
                         DBUtil.sqlValid(splitPkSql,dataBaseType);
                         if(i == 0) {
                             SingleTableSplitUtil.precheckSplitPk(conn, splitPkSql, fetchSize, table, userName);
@@ -93,7 +93,7 @@ public class PreCheckTask implements Callable<Boolean>{
                 }
             }
         } finally {
-            DBUtil.closeDBResources(null, conn);
+            DBUtil.closeDBResources(null, conn);//关闭链接
         }
         return true;
     }

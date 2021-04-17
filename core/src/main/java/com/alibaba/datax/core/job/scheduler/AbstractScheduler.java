@@ -33,16 +33,21 @@ public abstract class AbstractScheduler {
         this.containerCommunicator = containerCommunicator;
     }
 
+    /** Schedule方法做的事情如下：
+     1、为所有的TaskGroup创建TaskGroupContainerRunner。
+     2、通过线程池提交TaskGroupContainerRunner任务，执行TaskGroupContainerRunner的run()方法。
+     3、在run()方法内部执行this.taskGroupContainer.start()方法。
+     */
     public void schedule(List<Configuration> configurations) {
         Validate.notNull(configurations,
                 "scheduler配置不能为空");
-        int jobReportIntervalInMillSec = configurations.get(0).getInt(
+        int jobReportIntervalInMillSec = configurations.get(0).getInt(//core.container.job.reportInterval
                 CoreConstant.DATAX_CORE_CONTAINER_JOB_REPORTINTERVAL, 30000);
-        int jobSleepIntervalInMillSec = configurations.get(0).getInt(
+        int jobSleepIntervalInMillSec = configurations.get(0).getInt(//core.container.job.sleepInterval
                 CoreConstant.DATAX_CORE_CONTAINER_JOB_SLEEPINTERVAL, 10000);
 
         this.jobId = configurations.get(0).getLong(
-                CoreConstant.DATAX_CORE_CONTAINER_JOB_ID);
+                CoreConstant.DATAX_CORE_CONTAINER_JOB_ID);//获取jobid
 
         errorLimit = new ErrorRecordChecker(configurations.get(0));
 
@@ -51,8 +56,8 @@ public abstract class AbstractScheduler {
          */
         this.containerCommunicator.registerCommunication(configurations);
 
-        int totalTasks = calculateTaskCount(configurations);
-        startAllTaskGroup(configurations);
+        int totalTasks = calculateTaskCount(configurations);//统计全部的task任务数
+        startAllTaskGroup(configurations);// 启动所有的TaskGroup，抽象函数由子类去实现
 
         Communication lastJobContainerCommunication = new Communication();
 

@@ -33,7 +33,7 @@ public final class OriginalConfPretreatmentUtil {
         simplifyConf(originalConfig);
     }
 
-    public static void dealWhere(Configuration originalConfig) {
+    public static void dealWhere(Configuration originalConfig) {//这里只是去除尾部的分号
         String where = originalConfig.getString(Key.WHERE, null);
         if(StringUtils.isNotBlank(where)) {
             String whereImprove = where.trim();
@@ -259,7 +259,7 @@ public final class OriginalConfPretreatmentUtil {
             }
         }
 
-        // 混合配制 table 和 querySql
+        // 混合配制 table 和 querySql  只能配置一种模式
         if (!ListUtil.checkIfValueSame(tableModeFlags)
                 || !ListUtil.checkIfValueSame(tableModeFlags)) {
             throw DataXException.asDataXException(DBUtilErrorCode.TABLE_QUERYSQL_MIXED,

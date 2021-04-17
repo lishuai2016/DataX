@@ -20,7 +20,7 @@ import com.alibaba.datax.common.element.Record;
 
 public interface RecordSender {
 
-	public Record createRecord();
+	public Record createRecord();//把一行记录封装成Record对象
 
 	public void sendToWriter(Record record);
 

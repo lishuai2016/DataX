@@ -23,9 +23,9 @@ public class MemoryChannel extends Channel {
 
 	private int bufferSize = 0;
 
-	private AtomicInteger memoryBytes = new AtomicInteger(0);
+	private AtomicInteger memoryBytes = new AtomicInteger(0);//统计内存占用
 
-	private ArrayBlockingQueue<Record> queue = null;
+	private ArrayBlockingQueue<Record> queue = null;//通过一个阻塞队列实现
 
 	private ReentrantLock lock;
 
@@ -34,7 +34,7 @@ public class MemoryChannel extends Channel {
 	public MemoryChannel(final Configuration configuration) {
 		super(configuration);
 		this.queue = new ArrayBlockingQueue<Record>(this.getCapacity());
-		this.bufferSize = configuration.getInt(CoreConstant.DATAX_CORE_TRANSPORT_EXCHANGER_BUFFERSIZE);
+		this.bufferSize = configuration.getInt(CoreConstant.DATAX_CORE_TRANSPORT_EXCHANGER_BUFFERSIZE);//默认32
 
 		lock = new ReentrantLock();
 		notInsufficient = lock.newCondition();
@@ -60,7 +60,7 @@ public class MemoryChannel extends Channel {
 	protected void doPush(Record r) {
 		try {
 			long startTime = System.nanoTime();
-			this.queue.put(r);
+			this.queue.put(r);//把记录放到阻塞队列中去
 			waitWriterTime += System.nanoTime() - startTime;
             memoryBytes.addAndGet(r.getMemorySize());
 		} catch (InterruptedException ex) {

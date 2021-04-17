@@ -45,7 +45,7 @@ public class Engine {//python脚本最后调用这个类
          * 初始化PluginLoader，可以获取各种插件配置
          */
         LoadUtil.bind(allConf);
-
+        //这里的判断含义？？？
         boolean isJob = !("taskGroup".equalsIgnoreCase(allConf
                 .getString(CoreConstant.DATAX_CORE_CONTAINER_MODEL)));
         //JobContainer会在schedule后再行进行设置和调整值
@@ -55,9 +55,9 @@ public class Engine {//python脚本最后调用这个类
         int taskGroupId = -1;
         if (isJob) {
             allConf.set(CoreConstant.DATAX_CORE_CONTAINER_JOB_MODE, RUNTIME_MODE);
-            container = new JobContainer(allConf);
+            container = new JobContainer(allConf);// 核心点在于JobContainer的对象
             instanceId = allConf.getLong(
-                    CoreConstant.DATAX_CORE_CONTAINER_JOB_ID, 0);
+                    CoreConstant.DATAX_CORE_CONTAINER_JOB_ID, 0);//这里取的jobid
 
         } else {
             container = new TaskGroupContainer(allConf);
@@ -70,8 +70,8 @@ public class Engine {//python脚本最后调用这个类
         }
 
         //缺省打开perfTrace
-        boolean traceEnable = allConf.getBool(CoreConstant.DATAX_CORE_CONTAINER_TRACE_ENABLE, true);
-        boolean perfReportEnable = allConf.getBool(CoreConstant.DATAX_CORE_REPORT_DATAX_PERFLOG, true);
+        boolean traceEnable = allConf.getBool(CoreConstant.DATAX_CORE_CONTAINER_TRACE_ENABLE, true);//core.container.trace.enable
+        boolean perfReportEnable = allConf.getBool(CoreConstant.DATAX_CORE_REPORT_DATAX_PERFLOG, true);//core.dataXServer.reportPerfLog
 
         //standlone模式的datax shell任务不进行汇报
         if(instanceId == -1){
@@ -85,16 +85,16 @@ public class Engine {//python脚本最后调用这个类
             LOG.warn("prioriy set to 0, because NumberFormatException, the value is: "+System.getProperty("PROIORY"));
         }
 
-        Configuration jobInfoConfig = allConf.getConfiguration(CoreConstant.DATAX_JOB_JOBINFO);
+        Configuration jobInfoConfig = allConf.getConfiguration(CoreConstant.DATAX_JOB_JOBINFO);//job.jobInfo
         //初始化PerfTrace
         PerfTrace perfTrace = PerfTrace.getInstance(isJob, instanceId, taskGroupId, priority, traceEnable);
         perfTrace.setJobInfo(jobInfoConfig,perfReportEnable,channelNumber);
-        container.start();
+        container.start();// 核心容器的启动
 
     }
 
 
-    // 注意屏蔽敏感信息
+    // 注意屏蔽敏感信息[这里只输出了自定义job的content]
     public static String filterJobConfiguration(final Configuration configuration) {
         Configuration jobConfWithSetting = configuration.getConfiguration("job").clone();
 
@@ -118,7 +118,7 @@ public class Engine {//python脚本最后调用这个类
         }
         return configuration;
     }
-
+    //参数：  -mode standalone -jobid -1 -job D:\datax\job.json
     public static void entry(final String[] args) throws Throwable {
         Options options = new Options();
         options.addOption("job", true, "Job config.");
@@ -128,13 +128,13 @@ public class Engine {//python脚本最后调用这个类
         BasicParser parser = new BasicParser();
         CommandLine cl = parser.parse(options, args);
 
-        String jobPath = cl.getOptionValue("job");
+        String jobPath = cl.getOptionValue("job");//D:\datax\job.json
 
         // 如果用户没有明确指定jobid, 则 datax.py 会指定 jobid 默认值为-1
-        String jobIdString = cl.getOptionValue("jobid");
-        RUNTIME_MODE = cl.getOptionValue("mode");
+        String jobIdString = cl.getOptionValue("jobid");//-1
+        RUNTIME_MODE = cl.getOptionValue("mode");//standalone
 
-        Configuration configuration = ConfigParser.parse(jobPath);
+        Configuration configuration = ConfigParser.parse(jobPath);//解析配置
 
         long jobId;
         if (!"-1".equalsIgnoreCase(jobIdString)) {
@@ -156,19 +156,19 @@ public class Engine {//python脚本最后调用这个类
         }
         configuration.set(CoreConstant.DATAX_CORE_CONTAINER_JOB_ID, jobId);
 
-        //打印vmInfo
+        //打印vmInfo todo
         VMInfo vmInfo = VMInfo.getVmInfo();
         if (vmInfo != null) {
-            LOG.info(vmInfo.toString());
+            LOG.info(vmInfo.toString());//对应日志  the machine info  =>
         }
 
-        LOG.info("\n" + Engine.filterJobConfiguration(configuration) + "\n");
+        LOG.info("\n" + Engine.filterJobConfiguration(configuration) + "\n");//过滤敏感信息不打印
 
-        LOG.debug(configuration.toJSON());
+        LOG.debug(configuration.toJSON());//打印全部参数
 
-        ConfigurationValidate.doValidate(configuration);
+        ConfigurationValidate.doValidate(configuration);//配置检测，这里是空的实现
         Engine engine = new Engine();
-        engine.start(configuration);
+        engine.start(configuration);//启动
     }
 
 
@@ -197,7 +197,7 @@ public class Engine {//python脚本最后调用这个类
 
         return -1;
     }
-
+    //main函数主要做两件事情，分别是：1、解析job相关配置生成configuration;2、依据配置启动Engine;
     public static void main(String[] args) throws Exception {
         int exitCode = 0;
         try {

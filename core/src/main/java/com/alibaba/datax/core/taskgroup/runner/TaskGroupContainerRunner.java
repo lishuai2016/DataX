@@ -21,7 +21,7 @@ public class TaskGroupContainerRunner implements Runnable {
 		try {
             Thread.currentThread().setName(
                     String.format("taskGroup-%d", this.taskGroupContainer.getTaskGroupId()));
-            this.taskGroupContainer.start();
+            this.taskGroupContainer.start();//这里启动
 			this.state = State.SUCCEEDED;
 		} catch (Throwable e) {
 			this.state = State.FAILED;

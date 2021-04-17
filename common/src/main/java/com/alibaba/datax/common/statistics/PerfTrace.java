@@ -17,7 +17,7 @@ import java.util.concurrent.TimeUnit;
  * PerfTrace 记录 job（local模式），taskGroup（distribute模式），因为这2种都是jvm，即一个jvm里只需要有1个PerfTrace。
  */
 
-public class PerfTrace {
+public class PerfTrace {//性能跟踪，单例模式
 
     private static Logger LOG = LoggerFactory.getLogger(PerfTrace.class);
     private static PerfTrace instance;

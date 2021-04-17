@@ -12,7 +12,7 @@ import com.alibaba.datax.dataxservice.face.domain.enums.State;
 import java.util.List;
 import java.util.Map;
 
-public abstract class AbstractContainerCommunicator {
+public abstract class AbstractContainerCommunicator {// 发报机
     private Configuration configuration;
     private AbstractCollector collector;
     private AbstractReporter reporter;

@@ -19,12 +19,12 @@ public class MysqlReader extends Reader {
         private static final Logger LOG = LoggerFactory
                 .getLogger(Job.class);
 
-        private Configuration originalConfig = null;
-        private CommonRdbmsReader.Job commonRdbmsReaderJob;
+        private Configuration originalConfig = null;//配置信息
+        private CommonRdbmsReader.Job commonRdbmsReaderJob;//委托给这个关系数据库公用的读
 
         @Override
         public void init() {
-            this.originalConfig = super.getPluginJobConf();
+            this.originalConfig = super.getPluginJobConf();//读插件所需要的配置信息
 
             Integer userConfigedFetchSize = this.originalConfig.getInt(Constant.FETCH_SIZE);
             if (userConfigedFetchSize != null) {
@@ -33,7 +33,7 @@ public class MysqlReader extends Reader {
 
             this.originalConfig.set(Constant.FETCH_SIZE, Integer.MIN_VALUE);
 
-            this.commonRdbmsReaderJob = new CommonRdbmsReader.Job(DATABASE_TYPE);
+            this.commonRdbmsReaderJob = new CommonRdbmsReader.Job(DATABASE_TYPE);//关系型数据库公用的job类
             this.commonRdbmsReaderJob.init(this.originalConfig);
         }
 
@@ -46,7 +46,7 @@ public class MysqlReader extends Reader {
 
         @Override
         public List<Configuration> split(int adviceNumber) {
-            return this.commonRdbmsReaderJob.split(this.originalConfig, adviceNumber);
+            return this.commonRdbmsReaderJob.split(this.originalConfig, adviceNumber);//委托出去
         }
 
         @Override
@@ -77,7 +77,7 @@ public class MysqlReader extends Reader {
         @Override
         public void startRead(RecordSender recordSender) {
             int fetchSize = this.readerSliceConfig.getInt(Constant.FETCH_SIZE);
-
+            //这里开始进行读取
             this.commonRdbmsReaderTask.startRead(this.readerSliceConfig, recordSender,
                     super.getTaskPluginCollector(), fetchSize);
         }

@@ -22,15 +22,15 @@ public abstract class ProcessInnerScheduler extends AbstractScheduler {
 
     @Override
     public void startAllTaskGroup(List<Configuration> configurations) {
-        this.taskGroupContainerExecutorService = Executors
+        this.taskGroupContainerExecutorService = Executors//根据taskGroup的数量启动固定的线程数
                 .newFixedThreadPool(configurations.size());
 
-        for (Configuration taskGroupConfiguration : configurations) {
-            TaskGroupContainerRunner taskGroupContainerRunner = newTaskGroupContainerRunner(taskGroupConfiguration);
+        for (Configuration taskGroupConfiguration : configurations) {//每个TaskGroup启动一个TaskGroupContainerRunner
+            TaskGroupContainerRunner taskGroupContainerRunner = newTaskGroupContainerRunner(taskGroupConfiguration);//创建TaskGroupContainerRunner并提交线程池运行
             this.taskGroupContainerExecutorService.execute(taskGroupContainerRunner);
         }
 
-        this.taskGroupContainerExecutorService.shutdown();
+        this.taskGroupContainerExecutorService.shutdown();// 等待所有任务执行完后会关闭，执行该方法后不会再接收新任务
     }
 
     @Override

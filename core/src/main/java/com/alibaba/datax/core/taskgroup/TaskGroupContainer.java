@@ -34,6 +34,11 @@ import org.slf4j.LoggerFactory;
 
 import java.util.*;
 
+/**
+ TaskGroupContainer的内部主要做的事情如下：
+ 1、根据TaskGroupContainer分配的Task任务列表，创建TaskExecutor对象。
+ 2、创建TaskExecutor对象，用以启动分配该TaskGroup的task。
+ */
 public class TaskGroupContainer extends AbstractContainer {
     private static final Logger LOG = LoggerFactory
             .getLogger(TaskGroupContainer.class);
@@ -93,12 +98,12 @@ public class TaskGroupContainer extends AbstractContainer {
     public void start() {
         try {
             /**
-             * 状态check时间间隔，较短，可以把任务及时分发到对应channel中
+             * 状态check时间间隔，较短，可以把任务及时分发到对应channel中  core.container.taskGroup.sleepInterval
              */
             int sleepIntervalInMillSec = this.configuration.getInt(
                     CoreConstant.DATAX_CORE_CONTAINER_TASKGROUP_SLEEPINTERVAL, 100);
             /**
-             * 状态汇报时间间隔，稍长，避免大量汇报
+             * 状态汇报时间间隔，稍长，避免大量汇报   core.container.taskGroup.reportInterval
              */
             long reportIntervalInMillSec = this.configuration.getLong(
                     CoreConstant.DATAX_CORE_CONTAINER_TASKGROUP_REPORTINTERVAL,
@@ -107,18 +112,18 @@ public class TaskGroupContainer extends AbstractContainer {
              * 2分钟汇报一次性能统计
              */
 
-            // 获取channel数目
+            // 获取channel数目 core.container.taskGroup.channel
             int channelNumber = this.configuration.getInt(
                     CoreConstant.DATAX_CORE_CONTAINER_TASKGROUP_CHANNEL);
-
+            //core.container.task.failOver.maxRetryTimes
             int taskMaxRetryTimes = this.configuration.getInt(
                     CoreConstant.DATAX_CORE_CONTAINER_TASK_FAILOVER_MAXRETRYTIMES, 1);
-
+            //core.container.task.failOver.retryIntervalInMsec
             long taskRetryIntervalInMsec = this.configuration.getLong(
                     CoreConstant.DATAX_CORE_CONTAINER_TASK_FAILOVER_RETRYINTERVALINMSEC, 10000);
-
+            //core.container.task.failOver.maxWaitInMsec
             long taskMaxWaitInMsec = this.configuration.getLong(CoreConstant.DATAX_CORE_CONTAINER_TASK_FAILOVER_MAXWAITINMSEC, 60000);
-            
+            //分配给当为分组的任务列表
             List<Configuration> taskConfigs = this.configuration
                     .getListConfiguration(CoreConstant.DATAX_JOB_CONTENT);
 
@@ -126,13 +131,13 @@ public class TaskGroupContainer extends AbstractContainer {
                 LOG.debug("taskGroup[{}]'s task configs[{}]", this.taskGroupId,
                         JSON.toJSONString(taskConfigs));
             }
-            
-            int taskCountInThisTaskGroup = taskConfigs.size();
+
+            int taskCountInThisTaskGroup = taskConfigs.size();//任务task个数
             LOG.info(String.format(
                     "taskGroupId=[%d] start [%d] channels for [%d] tasks.",
                     this.taskGroupId, channelNumber, taskCountInThisTaskGroup));
-            
-            this.containerCommunicator.registerCommunication(taskConfigs);
+
+            this.containerCommunicator.registerCommunication(taskConfigs);//一个taskid对应一个Communication对象
 
             Map<Integer, Configuration> taskConfigMap = buildTaskConfigMap(taskConfigs); //taskId与task配置
             List<Configuration> taskQueue = buildRemainTasks(taskConfigs); //待运行task列表
@@ -147,8 +152,8 @@ public class TaskGroupContainer extends AbstractContainer {
             	//1.判断task状态
             	boolean failedOrKilled = false;
             	Map<Integer, Communication> communicationMap = containerCommunicator.getCommunicationMap();
-            	for(Map.Entry<Integer, Communication> entry : communicationMap.entrySet()){
-            		Integer taskId = entry.getKey();
+            	for(Map.Entry<Integer, Communication> entry : communicationMap.entrySet()){//相当于遍历分组
+            		Integer taskId = entry.getKey();//任务id
             		Communication taskCommunication = entry.getValue();
                     if(!taskCommunication.isFinished()){
                         continue;
@@ -186,7 +191,7 @@ public class TaskGroupContainer extends AbstractContainer {
                         }
                     }
             	}
-            	
+
                 // 2.发现该taskGroup下taskExecutor的总状态失败则汇报错误
                 if (failedOrKilled) {
                     lastTaskGroupContainerCommunication = reportTaskGroupCommunication(
@@ -195,7 +200,7 @@ public class TaskGroupContainer extends AbstractContainer {
                     throw DataXException.asDataXException(
                             FrameworkErrorCode.PLUGIN_RUNTIME_ERROR, lastTaskGroupContainerCommunication.getThrowable());
                 }
-                
+
                 //3.有任务未执行，且正在运行的任务数小于最大通道限制
                 Iterator<Configuration> iterator = taskQueue.iterator();
                 while(iterator.hasNext() && runTasks.size() < channelNumber){
@@ -203,7 +208,7 @@ public class TaskGroupContainer extends AbstractContainer {
                     Integer taskId = taskConfig.getInt(CoreConstant.TASK_ID);
                     int attemptCount = 1;
                     TaskExecutor lastExecutor = taskFailedExecutorMap.get(taskId);
-                    if(lastExecutor!=null){
+                    if(lastExecutor!=null){//失败重试情况
                         attemptCount = lastExecutor.getAttemptCount() + 1;
                         long now = System.currentTimeMillis();
                         long failedTime = lastExecutor.getTimeStamp();
@@ -225,9 +230,9 @@ public class TaskGroupContainer extends AbstractContainer {
                         }
                     }
                     Configuration taskConfigForRun = taskMaxRetryTimes > 1 ? taskConfig.clone() : taskConfig;
-                	TaskExecutor taskExecutor = new TaskExecutor(taskConfigForRun, attemptCount);
+                	TaskExecutor taskExecutor = new TaskExecutor(taskConfigForRun, attemptCount);//创建一个任务执行
                     taskStartTimeMap.put(taskId, System.currentTimeMillis());
-                	taskExecutor.doStart();
+                	taskExecutor.doStart();//具体的任务在运行这里
 
                     iterator.remove();
                     runTasks.add(taskExecutor);
@@ -296,7 +301,7 @@ public class TaskGroupContainer extends AbstractContainer {
             }
         }
     }
-    
+
     private Map<Integer, Configuration> buildTaskConfigMap(List<Configuration> configurations){
     	Map<Integer, Configuration> map = new HashMap<Integer, Configuration>();
     	for(Configuration taskConfig : configurations){
@@ -313,7 +318,7 @@ public class TaskGroupContainer extends AbstractContainer {
     	}
     	return remainTasks;
     }
-    
+
     private TaskExecutor removeTask(List<TaskExecutor> taskList, int taskId){
     	Iterator<TaskExecutor> iterator = taskList.iterator();
     	while(iterator.hasNext()){
@@ -325,7 +330,7 @@ public class TaskGroupContainer extends AbstractContainer {
     	}
     	return null;
     }
-    
+
     private boolean isAllTaskDone(List<TaskExecutor> taskList){
     	for(TaskExecutor taskExecutor : taskList){
     		if(!taskExecutor.isTaskFinished()){
@@ -353,6 +358,12 @@ public class TaskGroupContainer extends AbstractContainer {
      * TaskExecutor是一个完整task的执行器
      * 其中包括1：1的reader和writer
      */
+    /**
+     TaskExecutor的启动过程主要做了以下事情：
+     1、创建了reader和writer的线程任务，reader和writer公用一个channel。
+     2、先启动writer线程后，再启动reader线程。
+     3、至此，同步数据的Task任务已经启动了。
+     */
     class TaskExecutor {
         private Configuration taskConfig;
 
@@ -365,9 +376,9 @@ public class TaskGroupContainer extends AbstractContainer {
         private Thread readerThread;
 
         private Thread writerThread;
-        
+
         private ReaderRunner readerRunner;
-        
+
         private WriterRunner writerRunner;
 
         /**
@@ -481,7 +492,7 @@ public class TaskGroupContainer extends AbstractContainer {
                     if (transformerInfoExecs != null && transformerInfoExecs.size() > 0) {
                         recordSender = new BufferedRecordTransformerExchanger(taskGroupId, this.taskId, this.channel,this.taskCommunication ,pluginCollector, transformerInfoExecs);
                     } else {
-                        recordSender = new BufferedRecordExchanger(this.channel, pluginCollector);
+                        recordSender = new BufferedRecordExchanger(this.channel, pluginCollector);//
                     }
 
                     ((ReaderRunner) newRunner).setRecordSender(recordSender);
@@ -532,7 +543,7 @@ public class TaskGroupContainer extends AbstractContainer {
 
             return true;
         }
-        
+
         private int getTaskId(){
         	return taskId;
         }
@@ -544,7 +555,7 @@ public class TaskGroupContainer extends AbstractContainer {
         private int getAttemptCount(){
             return attemptCount;
         }
-        
+
         private boolean supportFailOver(){
         	return writerRunner.supportFailOver();
         }

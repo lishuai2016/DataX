@@ -51,7 +51,7 @@ public class MysqlWriter extends Writer {
         }
 
         @Override
-        public void destroy() {
+        public void destroy() {//调用公用的关系型数据库writer
             this.commonRdbmsWriterJob.destroy(this.originalConfig);
         }
 

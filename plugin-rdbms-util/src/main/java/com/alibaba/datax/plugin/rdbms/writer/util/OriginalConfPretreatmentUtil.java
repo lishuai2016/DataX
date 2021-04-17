@@ -22,7 +22,7 @@ public final class OriginalConfPretreatmentUtil {
 //    public static void doPretreatment(Configuration originalConfig) {
 //        doPretreatment(originalConfig,null);
 //    }
-
+    //预处理
     public static void doPretreatment(Configuration originalConfig, DataBaseType dataBaseType) {
         // 检查 username/password 配置（必填）
         originalConfig.getNecessaryValue(Key.USERNAME, DBUtilErrorCode.REQUIRED_VALUE);
@@ -30,9 +30,9 @@ public final class OriginalConfPretreatmentUtil {
 
         doCheckBatchSize(originalConfig);
 
-        simplifyConf(originalConfig);
+        simplifyConf(originalConfig);//校验jdbc url链接
 
-        dealColumnConf(originalConfig);
+        dealColumnConf(originalConfig);//校验插入表的字段合法性
         dealWriteMode(originalConfig, dataBaseType);
     }
 
@@ -49,7 +49,7 @@ public final class OriginalConfPretreatmentUtil {
     }
 
     public static void simplifyConf(Configuration originalConfig) {
-        List<Object> connections = originalConfig.getList(Constant.CONN_MARK,
+        List<Object> connections = originalConfig.getList(Constant.CONN_MARK,//获取链接列表
                 Object.class);
 
         int tableNum = 0;
@@ -62,11 +62,11 @@ public final class OriginalConfPretreatmentUtil {
                 throw DataXException.asDataXException(DBUtilErrorCode.REQUIRED_VALUE, "您未配置的写入数据库表的 jdbcUrl.");
             }
 
-            jdbcUrl = DATABASE_TYPE.appendJDBCSuffixForReader(jdbcUrl);
+            jdbcUrl = DATABASE_TYPE.appendJDBCSuffixForReader(jdbcUrl);//jdbc后面添加时区等参数
             originalConfig.set(String.format("%s[%d].%s", Constant.CONN_MARK, i, Key.JDBC_URL),
-                    jdbcUrl);
+                    jdbcUrl);//更新
 
-            List<String> tables = connConf.getList(Key.TABLE, String.class);
+            List<String> tables = connConf.getList(Key.TABLE, String.class);//写入的表名称列表
 
             if (null == tables || tables.isEmpty()) {
                 throw DataXException.asDataXException(DBUtilErrorCode.REQUIRED_VALUE,
@@ -88,17 +88,17 @@ public final class OriginalConfPretreatmentUtil {
                     i, Key.TABLE), expandedTables);
         }
 
-        originalConfig.set(Constant.TABLE_NUMBER_MARK, tableNum);
+        originalConfig.set(Constant.TABLE_NUMBER_MARK, tableNum);//统计表的个数
     }
 
     public static void dealColumnConf(Configuration originalConfig, ConnectionFactory connectionFactory, String oneTable) {
-        List<String> userConfiguredColumns = originalConfig.getList(Key.COLUMN, String.class);
+        List<String> userConfiguredColumns = originalConfig.getList(Key.COLUMN, String.class);//用户配置需要写入的列
         if (null == userConfiguredColumns || userConfiguredColumns.isEmpty()) {
             throw DataXException.asDataXException(DBUtilErrorCode.ILLEGAL_VALUE,
                     "您的配置文件中的列配置信息有误. 因为您未配置写入数据库表的列名称，DataX获取不到列信息. 请检查您的配置并作出修改.");
         } else {
             boolean isPreCheck = originalConfig.getBool(Key.DRYRUN, false);
-            List<String> allColumns;
+            List<String> allColumns;//表的全部列字段
             if (isPreCheck){
                 allColumns = DBUtil.getTableColumnsByConn(DATABASE_TYPE,connectionFactory.getConnecttionWithoutRetry(), oneTable, connectionFactory.getConnectionInfo());
             }else{
@@ -164,7 +164,7 @@ public final class OriginalConfPretreatmentUtil {
 
         LOG.info("Write data [\n{}\n], which jdbcUrl like:[{}]", writeDataSqlTemplate, jdbcUrl);
 
-        originalConfig.set(Constant.INSERT_OR_REPLACE_TEMPLATE_MARK, writeDataSqlTemplate);
+        originalConfig.set(Constant.INSERT_OR_REPLACE_TEMPLATE_MARK, writeDataSqlTemplate);//设置插入数据模板
     }
 
     public static boolean isOB10(String jdbcUrl) {

@@ -25,7 +25,7 @@ public class DirtyRecord implements Record {
 	}
 
 	@Override
-	public void addColumn(Column column) {
+	public void addColumn(Column column) {//添加列
 		this.columns.add(
                 DirtyColumn.asDirtyColumn(column, this.columns.size()));
 	}
@@ -76,7 +76,7 @@ public class DirtyRecord implements Record {
 }
 
 class DirtyColumn extends Column {
-	private int index;
+	private int index;//列的条件顺序
 
 	public static Column asDirtyColumn(final Column column, int index) {
 		return new DirtyColumn(column, index);

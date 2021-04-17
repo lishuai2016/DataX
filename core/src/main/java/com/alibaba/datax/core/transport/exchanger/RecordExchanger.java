@@ -87,7 +87,7 @@ public class RecordExchanger extends TransformerExchanger implements RecordSende
 		if (record == null) {
 			return;
 		}
-		this.channel.push(record);
+		this.channel.push(record);//把读取到的记录发送到channel中去
 		//和channel的统计保持同步
 		doStat();
 	}

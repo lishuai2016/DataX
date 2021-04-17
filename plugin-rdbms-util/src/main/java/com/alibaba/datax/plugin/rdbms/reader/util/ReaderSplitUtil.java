@@ -33,10 +33,10 @@ public final class ReaderSplitUtil {
 
         List<Object> conns = originalSliceConfig.getList(Constant.CONN_MARK, Object.class);
 
-        List<Configuration> splittedConfigs = new ArrayList<Configuration>();
+        List<Configuration> splittedConfigs = new ArrayList<Configuration>();//切分返回值封装
 
         for (int i = 0, len = conns.size(); i < len; i++) {
-            Configuration sliceConfig = originalSliceConfig.clone();
+            Configuration sliceConfig = originalSliceConfig.clone();//深度复制一份配置
 
             Configuration connConf = Configuration.from(conns.get(i).toString());
             String jdbcUrl = connConf.getString(Key.JDBC_URL);
@@ -66,7 +66,7 @@ public final class ReaderSplitUtil {
                         //原来:如果是单表的，主键切分num=num*2+1
                         // splitPk is null这类的情况的数据量本身就比真实数据量少很多, 和channel大小比率关系时，不建议考虑
                         //eachTableShouldSplittedNumber = eachTableShouldSplittedNumber * 2 + 1;// 不应该加1导致长尾
-                        
+
                         //考虑其他比率数字?(splitPk is null, 忽略此长尾)
                         eachTableShouldSplittedNumber = eachTableShouldSplittedNumber * 5;
                     }
@@ -74,7 +74,7 @@ public final class ReaderSplitUtil {
                     for (String table : tables) {
                         tempSlice = sliceConfig.clone();
                         tempSlice.set(Key.TABLE, table);
-
+                        //基于主键范围和步长切分eachTableShouldSplittedNumber多个查询配置
                         List<Configuration> splittedSlices = SingleTableSplitUtil
                                 .splitSingleTable(tempSlice, eachTableShouldSplittedNumber);
 

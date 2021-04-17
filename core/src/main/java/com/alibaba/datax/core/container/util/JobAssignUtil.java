@@ -26,9 +26,9 @@ public final class JobAssignUtil {
         Validate.isTrue(channelNumber > 0 && channelsPerTaskGroup > 0,
                 "每个channel的平均task数[averTaskPerChannel]，channel数目[channelNumber]，每个taskGroup的平均channel数[channelsPerTaskGroup]都应该为正数");
 
-        int taskGroupNumber = (int) Math.ceil(1.0 * channelNumber / channelsPerTaskGroup);
+        int taskGroupNumber = (int) Math.ceil(1.0 * channelNumber / channelsPerTaskGroup);//两者相除得到分组个数
 
-        Configuration aTaskConfig = contentConfig.get(0);
+        Configuration aTaskConfig = contentConfig.get(0);//去list中的第一个元素
 
         String readerResourceMark = aTaskConfig.getString(CoreConstant.JOB_READER_PARAMETER + "." +
                 CommonConstant.LOAD_BALANCE_RESOURCE_MARK);
@@ -38,7 +38,7 @@ public final class JobAssignUtil {
         boolean hasLoadBalanceResourceMark = StringUtils.isNotBlank(readerResourceMark) ||
                 StringUtils.isNotBlank(writerResourceMark);
 
-        if (!hasLoadBalanceResourceMark) {
+        if (!hasLoadBalanceResourceMark) {//没有标记情况
             // fake 一个固定的 key 作为资源标识（在 reader 或者 writer 上均可，此处选择在 reader 上进行 fake）
             for (Configuration conf : contentConfig) {
                 conf.set(CoreConstant.JOB_READER_PARAMETER + "." +

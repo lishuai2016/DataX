@@ -7,7 +7,7 @@ import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
 
-public final class RdbmsRangeSplitWrap {
+public final class RdbmsRangeSplitWrap {//
 
     public static List<String> splitAndWrap(String left, String right, int expectSliceNumber,
                                             String columnName, String quote, DataBaseType dataBaseType) {
@@ -68,13 +68,13 @@ public final class RdbmsRangeSplitWrap {
             return result;
         }
     }
-    
+
     public static String wrapFirstLastPoint(String firstPoint, String lastPoint, String columnName,
             String quote, DataBaseType dataBaseType) {
         return String.format(" ((%s < %s%s%s) OR (%s%s%s < %s)) ", columnName, quote, quoteConstantValue(firstPoint, dataBaseType),
                 quote, quote, quoteConstantValue(lastPoint, dataBaseType), quote, columnName);
     }
-    
+
     public static String wrapFirstLastPoint(Long firstPoint, Long lastPoint, String columnName) {
         return wrapFirstLastPoint(firstPoint.toString(), lastPoint.toString(), columnName, "", null);
     }
@@ -82,7 +82,7 @@ public final class RdbmsRangeSplitWrap {
     public static String wrapFirstLastPoint(BigInteger firstPoint, BigInteger lastPoint, String columnName) {
         return wrapFirstLastPoint(firstPoint.toString(), lastPoint.toString(), columnName, "", null);
     }
-    
+
 
     private static String quoteConstantValue(String aString, DataBaseType dataBaseType) {
         if (null == dataBaseType) {

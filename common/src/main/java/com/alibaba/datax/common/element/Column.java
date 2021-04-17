@@ -12,11 +12,11 @@ import java.util.Date;
  */
 public abstract class Column {
 
-	private Type type;
+	private Type type;//字段类型
 
-	private Object rawData;
+	private Object rawData;//字段的值
 
-	private int byteSize;
+	private int byteSize;//值大小
 
 	public Column(final Object object, final Type type, int byteSize) {
 		this.rawData = object;

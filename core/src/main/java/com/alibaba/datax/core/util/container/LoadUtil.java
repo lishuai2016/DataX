@@ -69,7 +69,7 @@ public class LoadUtil {
     private static Configuration getPluginConf(PluginType pluginType,
                                                String pluginName) {
         Configuration pluginConf = pluginRegisterCenter
-                .getConfiguration(generatePluginKey(pluginType, pluginName));
+                .getConfiguration(generatePluginKey(pluginType, pluginName));//查看缓存中是否有插件配置信息，启动的时候把全部参数进行了缓存
 
         if (null == pluginConf) {
             throw DataXException.asDataXException(
@@ -95,8 +95,8 @@ public class LoadUtil {
 
         try {
             AbstractJobPlugin jobPlugin = (AbstractJobPlugin) clazz
-                    .newInstance();
-            jobPlugin.setPluginConf(getPluginConf(pluginType, pluginName));
+                    .newInstance();//反射实例化一个对象
+            jobPlugin.setPluginConf(getPluginConf(pluginType, pluginName));//把插件的配置信息
             return jobPlugin;
         } catch (Exception e) {
             throw DataXException.asDataXException(
@@ -167,11 +167,11 @@ public class LoadUtil {
             PluginType pluginType, String pluginName,
             ContainerType pluginRunType) {
         Configuration pluginConf = getPluginConf(pluginType, pluginName);
-        JarLoader jarLoader = LoadUtil.getJarLoader(pluginType, pluginName);
+        JarLoader jarLoader = LoadUtil.getJarLoader(pluginType, pluginName);//包含了插件存放位置的类加载器
         try {
             return (Class<? extends AbstractPlugin>) jarLoader
                     .loadClass(pluginConf.getString("class") + "$"
-                            + pluginRunType.value());
+                            + pluginRunType.value());//比如：com.alibaba.datax.plugin.reader.mysqlreader.MysqlReader$Job
         } catch (Exception e) {
             throw DataXException.asDataXException(FrameworkErrorCode.RUNTIME_ERROR, e);
         }
@@ -179,12 +179,12 @@ public class LoadUtil {
 
     public static synchronized JarLoader getJarLoader(PluginType pluginType,
                                                       String pluginName) {
-        Configuration pluginConf = getPluginConf(pluginType, pluginName);
+        Configuration pluginConf = getPluginConf(pluginType, pluginName);//获取插件的配置信息
 
         JarLoader jarLoader = jarLoaderCenter.get(generatePluginKey(pluginType,
-                pluginName));
+                pluginName));//查看缓存中是否有
         if (null == jarLoader) {
-            String pluginPath = pluginConf.getString("path");
+            String pluginPath = pluginConf.getString("path");//获取插件安装路径，比如 D:\datax\datax\plugin\reader\mysqlreader
             if (StringUtils.isBlank(pluginPath)) {
                 throw DataXException.asDataXException(
                         FrameworkErrorCode.RUNTIME_ERROR,
@@ -192,7 +192,7 @@ public class LoadUtil {
                                 "%s插件[%s]路径非法!",
                                 pluginType, pluginName));
             }
-            jarLoader = new JarLoader(new String[]{pluginPath});
+            jarLoader = new JarLoader(new String[]{pluginPath});//构建一个对象然后缓存起来
             jarLoaderCenter.put(generatePluginKey(pluginType, pluginName),
                     jarLoader);
         }

@@ -21,7 +21,7 @@ import java.sql.Types;
 import java.util.ArrayList;
 import java.util.List;
 
-public class SingleTableSplitUtil {
+public class SingleTableSplitUtil {//单表切分工具类
     private static final Logger LOG = LoggerFactory
             .getLogger(SingleTableSplitUtil.class);
 
@@ -39,10 +39,10 @@ public class SingleTableSplitUtil {
         String table = configuration.getString(Key.TABLE);
         String where = configuration.getString(Key.WHERE, null);
         boolean hasWhere = StringUtils.isNotBlank(where);
-        
+
         //String splitMode = configuration.getString(Key.SPLIT_MODE, "");
         //if (Constant.SPLIT_MODE_RANDOMSAMPLE.equals(splitMode) && DATABASE_TYPE == DataBaseType.Oracle) {
-        if (DATABASE_TYPE == DataBaseType.Oracle) {
+        if (DATABASE_TYPE == DataBaseType.Oracle) {//oracle 单独处理？
             rangeList = genSplitSqlForOracle(splitPkName, table, where,
                     configuration, adviceNum);
             // warn: mysql etc to be added...
@@ -65,13 +65,13 @@ public class SingleTableSplitUtil {
             boolean isLongType = Constant.PK_TYPE_LONG.equals(configuration
                     .getString(Constant.PK_TYPE));
 
-            
-            if (isStringType) {
+
+            if (isStringType) {//主键类型是字符串
                 rangeList = RdbmsRangeSplitWrap.splitAndWrap(
                         String.valueOf(minMaxPK.getLeft()),
                         String.valueOf(minMaxPK.getRight()), adviceNum,
                         splitPkName, "'", DATABASE_TYPE);
-            } else if (isLongType) {
+            } else if (isLongType) {//主键类型为long型
                 rangeList = RdbmsRangeSplitWrap.splitAndWrap(
                         new BigInteger(minMaxPK.getLeft().toString()),
                         new BigInteger(minMaxPK.getRight().toString()),
@@ -85,11 +85,11 @@ public class SingleTableSplitUtil {
         List<String> allQuerySql = new ArrayList<String>();
 
         if (null != rangeList && !rangeList.isEmpty()) {
-            for (String range : rangeList) {
+            for (String range : rangeList) {//这里拼接的是主键的范围查询
                 Configuration tempConfig = configuration.clone();
 
                 tempQuerySql = buildQuerySql(column, table, where)
-                        + (hasWhere ? " and " : " where ") + range;
+                        + (hasWhere ? " and " : " where ") + range;//拼接为一个查询语句
 
                 allQuerySql.add(tempQuerySql);
                 tempConfig.set(Key.QUERY_SQL, tempQuerySql);
@@ -106,7 +106,7 @@ public class SingleTableSplitUtil {
             pluginParams.add(tempConfig);
         }
 
-        // deal pk is null
+        // deal pk is null  处理主键为null的数据为一个查询
         Configuration tempConfig = configuration.clone();
         tempQuerySql = buildQuerySql(column, table, where)
                 + (hasWhere ? " and " : " where ")
@@ -119,10 +119,10 @@ public class SingleTableSplitUtil {
 
         tempConfig.set(Key.QUERY_SQL, tempQuerySql);
         pluginParams.add(tempConfig);
-        
+
         return pluginParams;
     }
-
+    //这里的column为多个列中间使用逗号分隔。然后格式化为查询SQL
     public static String buildQuerySql(String column, String table,
                                           String where) {
         String querySql;
@@ -140,7 +140,7 @@ public class SingleTableSplitUtil {
 
     @SuppressWarnings("resource")
     private static Pair<Object, Object> getPkRange(Configuration configuration) {
-        String pkRangeSQL = genPKRangeSQL(configuration);
+        String pkRangeSQL = genPKRangeSQL(configuration);//计算主键key范围SQL
 
         int fetchSize = configuration.getInt(Constant.FETCH_SIZE);
         String jdbcURL = configuration.getString(Key.JDBC_URL);
@@ -149,7 +149,7 @@ public class SingleTableSplitUtil {
         String table = configuration.getString(Key.TABLE);
 
         Connection conn = DBUtil.getConnection(DATABASE_TYPE, jdbcURL, username, password);
-        Pair<Object, Object> minMaxPK = checkSplitPk(conn, pkRangeSQL, fetchSize, table, username, configuration);
+        Pair<Object, Object> minMaxPK = checkSplitPk(conn, pkRangeSQL, fetchSize, table, username, configuration);//计算主键key的最大和最小值对
         DBUtil.closeDBResources(null, null, conn);
         return minMaxPK;
     }
@@ -180,8 +180,8 @@ public class SingleTableSplitUtil {
                 throw RdbmsException.asQueryException(DATABASE_TYPE, e, pkRangeSQL,table,username);
             }
             ResultSetMetaData rsMetaData = rs.getMetaData();
-            if (isPKTypeValid(rsMetaData)) {
-                if (isStringType(rsMetaData.getColumnType(1))) {
+            if (isPKTypeValid(rsMetaData)) {//主键支持类型校验
+                if (isStringType(rsMetaData.getColumnType(1))) {//主键类型为字符串
                     if(configuration != null) {
                         configuration
                                 .set(Constant.PK_TYPE, Constant.PK_TYPE_STRING);
@@ -195,7 +195,7 @@ public class SingleTableSplitUtil {
                         configuration.set(Constant.PK_TYPE, Constant.PK_TYPE_LONG);
                     }
 
-                    while (DBUtil.asyncResultSetNext(rs)) {
+                    while (DBUtil.asyncResultSetNext(rs)) {//异步读取结果
                         minMaxPK = new ImmutablePair<Object, Object>(
                                 rs.getString(1), rs.getString(2));
 
@@ -225,7 +225,7 @@ public class SingleTableSplitUtil {
         return minMaxPK;
     }
 
-    private static boolean isPKTypeValid(ResultSetMetaData rsMetaData) {
+    private static boolean isPKTypeValid(ResultSetMetaData rsMetaData) {//主键key的数据类型只能是数字和字符串
         boolean ret = false;
         try {
             int minType = rsMetaData.getColumnType(1);
@@ -261,7 +261,7 @@ public class SingleTableSplitUtil {
         }
         return isValidLongType;
     }
-    
+
     private static boolean isStringType(int type) {
         return type == Types.CHAR || type == Types.NCHAR
                 || type == Types.VARCHAR || type == Types.LONGVARCHAR
@@ -276,7 +276,7 @@ public class SingleTableSplitUtil {
         return genPKSql(splitPK,table,where);
     }
 
-    public static String genPKSql(String splitPK, String table, String where){
+    public static String genPKSql(String splitPK, String table, String where){//生成主键范围查询SQL
 
         String minMaxTemplate = "SELECT MIN(%s),MAX(%s) FROM %s";
         String pkRangeSQL = String.format(minMaxTemplate, splitPK, splitPK,
@@ -287,7 +287,7 @@ public class SingleTableSplitUtil {
         }
         return pkRangeSQL;
     }
-    
+
     /**
      * support Number and String split
      * */

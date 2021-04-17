@@ -136,7 +136,7 @@ public class CoreConstant {
     public static final String LAST_PRIVATEKEY = "last.privateKey";
 
 	public static final String LAST_SERVICE_USERNAME = "last.service.username";
-    
+
 	public static final String LAST_SERVICE_PASSWORD = "last.service.password";
 
     public static final String CURRENT_KEYVERSION = "current.keyVersion";
@@ -146,12 +146,12 @@ public class CoreConstant {
     public static final String CURRENT_PRIVATEKEY = "current.privateKey";
 
 	public static final String CURRENT_SERVICE_USERNAME = "current.service.username";
-    
+
 	public static final String CURRENT_SERVICE_PASSWORD = "current.service.password";
 
 	// ----------------------------- 环境变量 ---------------------------------
 
-	public static String DATAX_HOME = System.getProperty("datax.home");
+	public static String DATAX_HOME = System.getProperty("datax.home");//-Ddatax.home=D:\datax\datax获取安装的根路径
 
 	public static String DATAX_CONF_PATH = StringUtils.join(new String[] {
 			DATAX_HOME, "conf", "core.json" }, File.separator);

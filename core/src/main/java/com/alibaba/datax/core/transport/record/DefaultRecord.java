@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Created by jingxing on 14-8-24.
+ * Created by jingxing on 14-8-24.  channel中的一条数据为一个Record的对象，Record中可以放多个Column对象，这可以简单理解为数据库中的记录和列。
  */
 
 public class DefaultRecord implements Record {
@@ -22,10 +22,10 @@ public class DefaultRecord implements Record {
 
 	private List<Column> columns;
 
-	private int byteSize;
+	private int byteSize;//记录当前Record保存列累加字节数
 
 	// 首先是Record本身需要的内存
-	private int memorySize = ClassSize.DefaultRecordHead;
+	private int memorySize = ClassSize.DefaultRecordHead;//在内存占用的大小，包含Record自身结构内存+Column的对象头
 
 	public DefaultRecord() {
 		this.columns = new ArrayList<Column>(RECORD_AVERGAE_COLUMN_NUMBER);
@@ -52,7 +52,7 @@ public class DefaultRecord implements Record {
 					"不能给index小于0的column设置值");
 		}
 
-		if (i >= columns.size()) {
+		if (i >= columns.size()) {//扩容
 			expandCapacity(i + 1);
 		}
 
@@ -99,7 +99,7 @@ public class DefaultRecord implements Record {
 			return;
 		}
 
-		byteSize += column.getByteSize();
+		byteSize += column.getByteSize();//累加
 
 		//内存的占用是column对象的头 再加实际大小
 		memorySize = memorySize + ClassSize.ColumnHead + column.getByteSize();

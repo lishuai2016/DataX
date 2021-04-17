@@ -7,7 +7,7 @@ public abstract class AbstractPlugin extends BaseObject implements Pluginable {
 	//作业的config
     private Configuration pluginJobConf;
 
-    //插件本身的plugin
+    //插件本身的plugin配置信息
 	private Configuration pluginConf;
 
     // by qiangsi.lq。 修改为对端的作业configuration

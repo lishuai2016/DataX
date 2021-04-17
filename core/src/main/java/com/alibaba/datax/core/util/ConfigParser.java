@@ -22,25 +22,25 @@ public final class ConfigParser {
     /**
      * 指定Job配置路径，ConfigParser会解析Job、Plugin、Core全部信息，并以Configuration返回
      */
-    public static Configuration parse(final String jobPath) {
-        Configuration configuration = ConfigParser.parseJobConfig(jobPath);
-
+    public static Configuration parse(final String jobPath) {//D:\datax\job.json
+        Configuration configuration = ConfigParser.parseJobConfig(jobPath);//解析用户自定义的job文件D:\datax\job.json
+        //解析文件D:\datax\datax\conf\core.json文件
         configuration.merge(
                 ConfigParser.parseCoreConfig(CoreConstant.DATAX_CONF_PATH),
                 false);
         // todo config优化，只捕获需要的plugin
         String readerPluginName = configuration.getString(
-                CoreConstant.DATAX_JOB_CONTENT_READER_NAME);
+                CoreConstant.DATAX_JOB_CONTENT_READER_NAME);//读取job.json定义的reader  固定的节点路径 job.content[0].reader.name
         String writerPluginName = configuration.getString(
-                CoreConstant.DATAX_JOB_CONTENT_WRITER_NAME);
+                CoreConstant.DATAX_JOB_CONTENT_WRITER_NAME);//读取job.json定义的writer  固定的节点路径 job.content[0].writer.name
 
         String preHandlerName = configuration.getString(
-                CoreConstant.DATAX_JOB_PREHANDLER_PLUGINNAME);
+                CoreConstant.DATAX_JOB_PREHANDLER_PLUGINNAME);//job配置的preHandler   固定的节点路径 job.preHandler.pluginName
 
         String postHandlerName = configuration.getString(
-                CoreConstant.DATAX_JOB_POSTHANDLER_PLUGINNAME);
+                CoreConstant.DATAX_JOB_POSTHANDLER_PLUGINNAME);//job配置的postHandler 固定的节点路径 job.postHandler.pluginName
 
-        Set<String> pluginList = new HashSet<String>();
+        Set<String> pluginList = new HashSet<String>();// 添加读写插件的列表待加载
         pluginList.add(readerPluginName);
         pluginList.add(writerPluginName);
 
@@ -50,7 +50,7 @@ public final class ConfigParser {
         if(StringUtils.isNotEmpty(postHandlerName)) {
             pluginList.add(postHandlerName);
         }
-        try {
+        try {//加载指定的插件的配置信息，并且和全局的配置文件进行合并
             configuration.merge(parsePluginConfig(new ArrayList<String>(pluginList)), false);
         }catch (Exception e){
             //吞掉异常，保持log干净。这里message足够。
@@ -63,7 +63,7 @@ public final class ConfigParser {
             configuration.merge(parsePluginConfig(new ArrayList<String>(pluginList)), false);
         }
 
-        return configuration;
+        return configuration;// configuration整合了三方的配置，包括 任务配置、core核心配置、指定插件的配置。
     }
 
     private static Configuration parseCoreConfig(final String path) {
@@ -114,17 +114,17 @@ public final class ConfigParser {
         }
         return jobContent;
     }
-
+    //解析job.json中读写插件配置  在指定的reader和writer目录获取指定的插件并解析其配置
     public static Configuration parsePluginConfig(List<String> wantPluginNames) {
-        Configuration configuration = Configuration.newDefault();
+        Configuration configuration = Configuration.newDefault();// 创建一个空的配置信息对象
 
         Set<String> replicaCheckPluginSet = new HashSet<String>();
-        int complete = 0;
+        int complete = 0;// 所有的reader在/plugin/reader目录，遍历获取所有reader的目录  获取待加载插件的配资信息，并合并到上面创建的空配置对象
         for (final String each : ConfigParser
-                .getDirAsList(CoreConstant.DATAX_PLUGIN_READER_HOME)) {
-            Configuration eachReaderConfig = ConfigParser.parseOnePluginConfig(each, "reader", replicaCheckPluginSet, wantPluginNames);
+                .getDirAsList(CoreConstant.DATAX_PLUGIN_READER_HOME)) {//D:\datax\datax\plugin\reader目录下全部子目录
+            Configuration eachReaderConfig = ConfigParser.parseOnePluginConfig(each, "reader", replicaCheckPluginSet, wantPluginNames);// 解析单个reader目录，eachReaderConfig保存的是key是plugin.reader.pluginname，value是对应的plugin.json内容
             if(eachReaderConfig!=null) {
-                configuration.merge(eachReaderConfig, true);
+                configuration.merge(eachReaderConfig, true);// 采用覆盖式的合并
                 complete += 1;
             }
         }
@@ -133,7 +133,7 @@ public final class ConfigParser {
                 .getDirAsList(CoreConstant.DATAX_PLUGIN_WRITER_HOME)) {
             Configuration eachWriterConfig = ConfigParser.parseOnePluginConfig(each, "writer", replicaCheckPluginSet, wantPluginNames);
             if(eachWriterConfig!=null) {
-                configuration.merge(eachWriterConfig, true);
+                configuration.merge(eachWriterConfig, true);// 采用覆盖式的合并
                 complete += 1;
             }
         }

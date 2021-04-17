@@ -28,6 +28,13 @@ public class ReaderRunner extends AbstractRunner implements Runnable {
         super(abstractTaskPlugin);
     }
 
+    /**
+     taskReader.init();
+     taskReader.prepare();
+     taskReader.post();
+     taskReader.startRead(recordSender);
+     taskReader.post();
+     */
     @Override
     public void run() {
         assert null != this.recordSender;
@@ -54,7 +61,7 @@ public class ReaderRunner extends AbstractRunner implements Runnable {
             LOG.debug("task reader starts to read ...");
             PerfRecord dataPerfRecord = new PerfRecord(getTaskGroupId(), getTaskId(), PerfRecord.PHASE.READ_TASK_DATA);
             dataPerfRecord.start();
-            taskReader.startRead(recordSender);
+            taskReader.startRead(recordSender);//核心，这里调用具体的reader插件把读到的数据发送到channel中去
             recordSender.terminate();
 
             dataPerfRecord.addCount(CommunicationTool.getTotalReadRecords(super.getRunnerCommunication()));

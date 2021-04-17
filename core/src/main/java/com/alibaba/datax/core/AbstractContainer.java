@@ -8,7 +8,7 @@ import org.apache.commons.lang.Validate;
  * 执行容器的抽象类，持有该容器全局的配置 configuration
  */
 public abstract class AbstractContainer {
-    protected Configuration configuration;
+    protected Configuration configuration;//全局的配置 configuration
 
     protected AbstractContainerCommunicator containerCommunicator;
 

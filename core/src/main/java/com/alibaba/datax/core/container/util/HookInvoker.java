@@ -39,7 +39,7 @@ public class HookInvoker {
         this.msg = msg;
     }
 
-    public void invokeAll() {
+    public void invokeAll() {//No hook invoked, because base dir not exists or is a file: D:\datax\datax\hook
         if (!baseDir.exists() || baseDir.isFile()) {
             LOG.info("No hook invoked, because base dir not exists or is a file: " + baseDir.getAbsolutePath());
             return;

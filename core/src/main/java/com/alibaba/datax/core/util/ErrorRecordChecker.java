@@ -19,12 +19,12 @@ public final class ErrorRecordChecker {
     private static final Logger LOG = LoggerFactory
             .getLogger(ErrorRecordChecker.class);
 
-    private Long recordLimit;
-    private Double percentageLimit;
+    private Long recordLimit;//条数限制。优先级比较高
+    private Double percentageLimit;//百分比限制
 
     public ErrorRecordChecker(Configuration configuration) {
-        this(configuration.getLong(CoreConstant.DATAX_JOB_SETTING_ERRORLIMIT_RECORD),
-                configuration.getDouble(CoreConstant.DATAX_JOB_SETTING_ERRORLIMIT_PERCENT));
+        this(configuration.getLong(CoreConstant.DATAX_JOB_SETTING_ERRORLIMIT_RECORD),//job.setting.errorLimit.record  条数限制
+                configuration.getDouble(CoreConstant.DATAX_JOB_SETTING_ERRORLIMIT_PERCENT));//job.setting.errorLimit.percentage 百分比限制
     }
 
     public ErrorRecordChecker(Long rec, Double percentage) {
@@ -50,7 +50,7 @@ public final class ErrorRecordChecker {
             return;
         }
 
-        long errorNumber = CommunicationTool.getTotalErrorRecords(communication);
+        long errorNumber = CommunicationTool.getTotalErrorRecords(communication);//包含读写错误条数
         if (recordLimit < errorNumber) {
             LOG.debug(
                     String.format("Error-limit set to %d, error count check.",
@@ -68,9 +68,9 @@ public final class ErrorRecordChecker {
         }
         LOG.debug(String.format(
                 "Error-limit set to %f, error percent check.", percentageLimit));
-
-        long total = CommunicationTool.getTotalReadRecords(communication);
-        long error = CommunicationTool.getTotalErrorRecords(communication);
+        //这个公式是不是有问题？
+        long total = CommunicationTool.getTotalReadRecords(communication);//readSucceedRecords+readFailedRecords
+        long error = CommunicationTool.getTotalErrorRecords(communication);//readFailedRecords+writeFailedRecords
 
         if (total > 0 && ((double) error / (double) total) > percentageLimit) {
             throw DataXException.asDataXException(

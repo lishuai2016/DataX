@@ -38,8 +38,8 @@ public class CommonRdbmsWriter {
         }
 
         public void init(Configuration originalConfig) {
-            OriginalConfPretreatmentUtil.doPretreatment(originalConfig, this.dataBaseType);
-
+            OriginalConfPretreatmentUtil.doPretreatment(originalConfig, this.dataBaseType);//写插件的预处理
+//{"batchSize":2048,"column":["id","name"],"connection":[{"jdbcUrl":"jdbc:mysql://localhost:3306/datax?characterEncoding=utf8&yearIsDateType=false&zeroDateTimeBehavior=convertToNull&tinyInt1isBit=false&rewriteBatchedStatements=true","table":["table2"]}],"insertOrReplaceTemplate":"INSERT INTO %s (id,name) VALUES(?,?)","password":"123456","tableNumber":1,"username":"root"}
             LOG.debug("After job init(), originalConfig now is:[\n{}\n]",
                     originalConfig.toJSON());
         }
@@ -122,7 +122,7 @@ public class CommonRdbmsWriter {
                     DBUtil.closeDBResources(null, null, conn);
                 }
             }
-
+//{"batchSize":2048,"column":["id","name"],"insertOrReplaceTemplate":"INSERT INTO %s (id,name) VALUES(?,?)","jdbcUrl":"jdbc:mysql://localhost:3306/datax?characterEncoding=utf8&yearIsDateType=false&zeroDateTimeBehavior=convertToNull&tinyInt1isBit=false&rewriteBatchedStatements=true","password":"123456","table":"table2","tableNumber":1,"username":"root"}
             LOG.debug("After job prepare(), originalConfig now is:[\n{}\n]",
                     originalConfig.toJSON());
         }
@@ -194,7 +194,7 @@ public class CommonRdbmsWriter {
 
         protected static String INSERT_OR_REPLACE_TEMPLATE;
 
-        protected String writeRecordSql;
+        protected String writeRecordSql;//插入记录函数
         protected String writeMode;
         protected boolean emptyAsNull;
         protected Triple<List<String>, List<Integer>, List<String>> resultSetMetaData;
@@ -272,8 +272,8 @@ public class CommonRdbmsWriter {
             int bufferBytes = 0;
             try {
                 Record record;
-                while ((record = recordReceiver.getFromReader()) != null) {
-                    if (record.getColumnNumber() != this.columnNumber) {
+                while ((record = recordReceiver.getFromReader()) != null) {//从阻塞队列中拉取记录
+                    if (record.getColumnNumber() != this.columnNumber) {//字段个数匹配校验
                         // 源头读取字段列数与目的表字段写入列数不相等，直接报错
                         throw DataXException
                                 .asDataXException(
@@ -286,7 +286,7 @@ public class CommonRdbmsWriter {
 
                     writeBuffer.add(record);
                     bufferBytes += record.getMemorySize();
-
+                    //基于条数和所占字节大小，那个先达到阈值，批量写入一次；累计清空
                     if (writeBuffer.size() >= batchSize || bufferBytes >= batchByteSize) {
                         doBatchInsert(connection, writeBuffer);
                         writeBuffer.clear();
@@ -313,7 +313,7 @@ public class CommonRdbmsWriter {
                                Configuration writerSliceConfig,
                                TaskPluginCollector taskPluginCollector) {
             Connection connection = DBUtil.getConnection(this.dataBaseType,
-                    this.jdbcUrl, username, password);
+                    this.jdbcUrl, username, password);//获得链接
             DBUtil.dealWithSessionConfig(connection, writerSliceConfig,
                     this.dataBaseType, BASIC_MESSAGE);
             startWriteWithConnection(recordReceiver, taskPluginCollector, connection);
